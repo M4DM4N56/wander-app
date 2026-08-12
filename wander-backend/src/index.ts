@@ -15,6 +15,10 @@ app.use(express.json());
 app.use("/api/places", placesRouter);
 app.use("/api/distance", distanceRouter);
 
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.listen(PORT, () => {
   console.log(`Wander backend running on port ${PORT}`);
 });
