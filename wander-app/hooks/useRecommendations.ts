@@ -4,6 +4,7 @@ import { fetchNearbyPlaces } from '../services/placesService';
 import { fetchTravelTimes } from '../services/distanceService';
 import { rankPlaces } from '../utils/ranking';
 import { radiusFromBudget } from '../utils/radiusFromBudget';
+import { API_BASE_URL } from '../constants';
 
 export function useRecommendations() {
   const userLocation = useWanderStore((s) => s.userLocation);
@@ -16,12 +17,14 @@ export function useRecommendations() {
   const setRecommendations = useWanderStore((s) => s.setRecommendations);
 
   useEffect(() => {
-    (async () => {
-      if (userLocation === null) {
-        setError('No location available');
-        return;
-      }
+    console.log('useRecommendations effect — userLocation:', userLocation, '| API_BASE_URL:', API_BASE_URL);
 
+    // Wait silently until the home screen finishes resolving location into the store.
+    if (userLocation === null) {
+      return;
+    }
+
+    (async () => {
       setLoading(true);
       setError(null);
 
@@ -48,5 +51,5 @@ export function useRecommendations() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [userLocation]);
 }

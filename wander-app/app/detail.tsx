@@ -54,23 +54,25 @@ export default function DetailScreen() {
 
         <Text style={styles.name}>{rec.name}</Text>
 
-        <MapView
-          style={styles.map}
-          initialRegion={{
-            latitude: rec.lat,
-            longitude: rec.lng,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-          scrollEnabled={false}
-          zoomEnabled={false}
-        >
-          <Marker
-            coordinate={{ latitude: rec.lat, longitude: rec.lng }}
-            title={rec.name}
-            pinColor="#4F46E5"
-          />
-        </MapView>
+        <View style={styles.mapWrapper}>
+          <MapView
+            style={styles.map}
+            initialRegion={{
+              latitude: rec.lat,
+              longitude: rec.lng,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+            scrollEnabled={false}
+            zoomEnabled={false}
+          >
+            <Marker
+              coordinate={{ latitude: rec.lat, longitude: rec.lng }}
+              title={rec.name}
+              pinColor="#4F46E5"
+            />
+          </MapView>
+        </View>
 
         <View style={styles.infoSection}>
           <View style={styles.infoRow}>
@@ -141,12 +143,16 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 16,
   },
-  map: {
+  mapWrapper: {
     width: '100%',
     height: 180,
     borderRadius: 12,
     marginBottom: 20,
     overflow: 'hidden',
+  },
+  map: {
+    width: '100%',
+    height: 180,
   },
   infoSection: {
     backgroundColor: '#FFFFFF',
