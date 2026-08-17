@@ -81,7 +81,7 @@ export async function getNearbyPlaces(req: Request, res: Response): Promise<void
 
 export async function getPlacePhoto(req: Request, res: Response): Promise<void> {
   try {
-    const { photoReference } = req.params;
+    const photoReference = req.params.photoReference as string;
     const maxwidth = (req.query.maxwidth as string | undefined) ?? '400';
 
     const photoUrl =
