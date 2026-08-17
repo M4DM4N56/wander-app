@@ -6,6 +6,8 @@ import { formatTime } from '../../utils/formatTime';
 import { roundVenueTime } from '../../utils/roundVenueTime';
 import { getPlaceTypeLabel } from '../../utils/getPlaceTypeLabel';
 import { getPhotoUrl } from '../../utils/getPhotoUrl';
+import { getPriceLabel } from '../../utils/getPriceLabel';
+import { PRICED_PLACE_TYPES } from '../../constants';
 
 interface Props {
   recommendation: Recommendation;
@@ -45,26 +47,29 @@ export function RecommendationCard({ recommendation, onPress }: Props) {
   const badge = getOpenBadge(recommendation.openNow, recommendation.closingTime);
   const typeLabel = getPlaceTypeLabel(recommendation.types);
   const photos = recommendation.photoReferences.slice(0, 2);
+  const isPriced = recommendation.types.some((t) => PRICED_PLACE_TYPES.has(t));
+  const priceLabel = isPriced ? getPriceLabel(recommendation.priceLevel) : null;
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <Card style={styles.card}>
         {photos.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.imageStrip}
-            contentContainerStyle={styles.imageStripContent}
-          >
-            {photos.map((ref) => (
-              <Image
-                key={ref}
-                source={{ uri: getPhotoUrl(ref, 400) }}
-                style={styles.image}
-                resizeMode="cover"
-              />
-            ))}
-          </ScrollView>
+          <View style={styles.imageStripWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingRight: 8 }}
+            >
+              {photos.map((ref) => (
+                <Image
+                  key={ref}
+                  source={{ uri: getPhotoUrl(ref, 400) }}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+              ))}
+            </ScrollView>
+          </View>
         )}
 
         <View style={styles.titleRow}>
@@ -93,6 +98,11 @@ export function RecommendationCard({ recommendation, onPress }: Props) {
                 <Text style={styles.typeTagText}>{typeLabel}</Text>
               </View>
             )}
+            {priceLabel && (
+              <View style={styles.priceTag}>
+                <Text style={styles.priceTagText}>{priceLabel}</Text>
+              </View>
+            )}
             {badge && (
               <View style={[styles.badge, badge.style === 'closed' ? styles.badgeClosed : styles.badgeWarning]}>
                 <Text style={[styles.badgeText, badge.style === 'closed' ? styles.badgeClosedText : styles.badgeWarningText]}>
@@ -113,18 +123,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
   },
-  imageStrip: {
+  imageStripWrapper: {
     marginHorizontal: -16,
     marginTop: -16,
     marginBottom: 12,
-  },
-  imageStripContent: {
+    overflow: 'hidden',
     paddingHorizontal: 16,
     paddingTop: 16,
   },
   image: {
-    width: 140,
-    height: 100,
+    width: 150,
+    height: 110,
     borderRadius: 8,
     marginRight: 8,
   },
@@ -178,6 +187,17 @@ const styles = StyleSheet.create({
   typeTagText: {
     fontSize: 11,
     color: '#4F46E5',
+    fontWeight: '500',
+  },
+  priceTag: {
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  priceTagText: {
+    fontSize: 11,
+    color: '#16A34A',
     fontWeight: '500',
   },
   badge: {

@@ -1,5 +1,7 @@
 import { Place, DistanceResult, Recommendation } from '../types';
-import { MIN_VENUE_TIME_MINUTES, MAX_RECOMMENDATIONS, SCORE_WEIGHTS, EXCLUDED_PLACE_TYPES } from '../constants';
+import { MIN_VENUE_TIME_MINUTES, MAX_RECOMMENDATIONS, SCORE_WEIGHTS, PLACE_TYPE_LABELS } from '../constants';
+
+const wantedTypes = new Set(Object.keys(PLACE_TYPE_LABELS));
 
 export function rankPlaces(
   candidates: Place[],
@@ -14,7 +16,7 @@ export function rankPlaces(
 
   for (const candidate of candidates) {
     if (!candidate.openNow) continue;
-    if (candidate.types.some((t) => EXCLUDED_PLACE_TYPES.has(t))) continue;
+    if (!candidate.types.some((t) => wantedTypes.has(t))) continue;
 
     const durationSeconds = durationMap.get(candidate.placeId);
     if (durationSeconds == null) continue;
@@ -42,9 +44,9 @@ export function rankPlaces(
 
 if (require.main === module) {
   const places: Place[] = [
-    { placeId: 'p1', name: 'Central Park', lat: 40.785, lng: -73.968, rating: 4.8, totalRatings: 5000, types: ['park'], openNow: true, closingTime: null, photoReferences: [] },
-    { placeId: 'p2', name: 'Corner Cafe', lat: 40.712, lng: -74.006, rating: 4.2, totalRatings: 300, types: ['cafe'], openNow: true, closingTime: null, photoReferences: [] },
-    { placeId: 'p3', name: 'Closed Museum', lat: 40.779, lng: -73.963, rating: 4.5, totalRatings: 1200, types: ['museum'], openNow: false, closingTime: null, photoReferences: [] },
+    { placeId: 'p1', name: 'Central Park', lat: 40.785, lng: -73.968, rating: 4.8, totalRatings: 5000, types: ['park'], openNow: true, closingTime: null, photoReferences: [], priceLevel: null },
+    { placeId: 'p2', name: 'Corner Cafe', lat: 40.712, lng: -74.006, rating: 4.2, totalRatings: 300, types: ['cafe'], openNow: true, closingTime: null, photoReferences: [], priceLevel: 1 },
+    { placeId: 'p3', name: 'Closed Museum', lat: 40.779, lng: -73.963, rating: 4.5, totalRatings: 1200, types: ['museum'], openNow: false, closingTime: null, photoReferences: [], priceLevel: null },
   ];
 
   const distanceResults: DistanceResult[] = [

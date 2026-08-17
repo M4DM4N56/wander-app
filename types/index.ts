@@ -11,6 +11,7 @@ export interface Place {
   openNow: boolean;
   closingTime: string | null;
   photoReferences: string[];
+  priceLevel: number | null;
 }
 
 export interface DistanceResult {

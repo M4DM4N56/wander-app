@@ -7,13 +7,28 @@ export async function fetchNearbyPlaces(
   radius: number,
   types: string[],
 ): Promise<Place[]> {
-  const params: Record<string, string> = {
+  const baseParams = {
     lat: String(lat),
     lng: String(lng),
     radius: String(radius),
   };
-  if (types.length === 1) {
-    params.type = types[0];
+
+  if (types.length === 0) {
+    return apiGet<Place[]>('/api/places', baseParams);
   }
-  return apiGet<Place[]>('/api/places', params);
+
+  if (types.length === 1) {
+    return apiGet<Place[]>('/api/places', { ...baseParams, type: types[0] });
+  }
+
+  const results = await Promise.all(
+    types.map((type) => apiGet<Place[]>('/api/places', { ...baseParams, type }))
+  );
+
+  const seen = new Set<string>();
+  return results.flat().filter((place) => {
+    if (seen.has(place.placeId)) return false;
+    seen.add(place.placeId);
+    return true;
+  });
 }

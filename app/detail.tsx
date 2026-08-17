@@ -14,11 +14,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import MapView, { Marker } from 'react-native-maps';
 import { useWanderStore } from '../store/wanderStore';
 import { formatTime } from '../utils/formatTime';
 import { roundVenueTime } from '../utils/roundVenueTime';
 import { getPhotoUrl } from '../utils/getPhotoUrl';
+import { getPriceLabel } from '../utils/getPriceLabel';
+import { PRICED_PLACE_TYPES } from '../constants';
 import { Button } from '../components/ui/Button';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -79,10 +80,10 @@ export default function DetailScreen() {
               onMomentumScrollEnd={handleScroll}
               style={styles.carousel}
             >
-              {rec.photoReferences.map((ref) => (
+              {rec.photoReferences.map((ref, index) => (
                 <Image
-                  key={ref}
-                  source={{ uri: getPhotoUrl(ref, SCREEN_WIDTH) }}
+                  key={index}
+                  source={{ uri: getPhotoUrl(ref, 800) }}
                   style={styles.carouselImage}
                   resizeMode="cover"
                 />
@@ -99,26 +100,6 @@ export default function DetailScreen() {
           </View>
         )}
 
-        <View style={styles.mapWrapper}>
-          <MapView
-            style={styles.map}
-            initialRegion={{
-              latitude: rec.lat,
-              longitude: rec.lng,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-            scrollEnabled={false}
-            zoomEnabled={false}
-          >
-            <Marker
-              coordinate={{ latitude: rec.lat, longitude: rec.lng }}
-              title={rec.name}
-              pinColor="#4F46E5"
-            />
-          </MapView>
-        </View>
-
         <View style={styles.infoSection}>
           <View style={styles.infoRow}>
             <Text style={styles.infoText}>
@@ -132,6 +113,14 @@ export default function DetailScreen() {
               <View style={[styles.badge, styles.badgeClosed]}>
                 <Text style={styles.badgeClosedText}>Closed</Text>
               </View>
+            </View>
+          )}
+
+          {rec.types.some((t) => PRICED_PLACE_TYPES.has(t)) && getPriceLabel(rec.priceLevel) && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoText}>
+                Price range: {getPriceLabel(rec.priceLevel)} per person
+              </Text>
             </View>
           )}
 
@@ -187,7 +176,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   carouselWrapper: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   carousel: {
     width: SCREEN_WIDTH,
@@ -214,16 +203,6 @@ const styles = StyleSheet.create({
   },
   dotInactive: {
     backgroundColor: '#D1D5DB',
-  },
-  mapWrapper: {
-    width: '100%',
-    height: 180,
-    marginBottom: 20,
-    overflow: 'hidden',
-  },
-  map: {
-    width: '100%',
-    height: 180,
   },
   infoSection: {
     backgroundColor: '#FFFFFF',

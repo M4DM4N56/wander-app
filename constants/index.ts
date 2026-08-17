@@ -19,42 +19,31 @@ export const SCORE_WEIGHTS = {
 };
 
 export const EXCLUDED_PLACE_TYPES = new Set([
-  'lodging',
-  'hotel',
-  'motel',
-  'inn',
-  'campground',
-  'rv_park',
-  'real_estate_agency',
-  'insurance_agency',
-  'lawyer',
-  'doctor',
-  'dentist',
-  'hospital',
-  'veterinary_care',
-  'bank',
-  'atm',
-  'finance',
-  'accounting',
-  'car_dealer',
-  'car_rental',
-  'car_repair',
-  'car_wash',
-  'gas_station',
-  'funeral_home',
-  'cemetery',
-  'police',
-  'fire_station',
-  'local_government_office',
-  'post_office',
-  'storage',
-  'moving_company',
-  'locksmith',
-  'electrician',
-  'plumber',
-  'painter',
-  'roofing_contractor',
-  'general_contractor',
+  // Accommodation
+  'lodging', 'hotel', 'motel', 'inn', 'campground', 'rv_park',
+  // Professional services
+  'real_estate_agency', 'insurance_agency', 'lawyer', 'doctor', 'dentist',
+  'hospital', 'veterinary_care', 'bank', 'atm', 'finance', 'accounting',
+  // Automotive
+  'car_dealer', 'car_rental', 'car_repair', 'car_wash', 'gas_station',
+  // Other unwanted
+  'funeral_home', 'cemetery', 'police', 'fire_station', 'local_government_office',
+  'post_office', 'storage', 'moving_company', 'locksmith', 'electrician',
+  'plumber', 'painter', 'roofing_contractor', 'general_contractor',
+  // Administrative / geographic
+  'locality', 'political', 'administrative_area_level_1', 'administrative_area_level_2',
+  'administrative_area_level_3', 'sublocality', 'sublocality_level_1', 'neighborhood',
+  'colloquial_area', 'country', 'postal_code', 'route', 'street_address', 'premise',
+  'subpremise', 'natural_feature', 'geocode',
+  // Transit
+  'transit_station', 'bus_station', 'train_station', 'subway_station', 'taxi_stand',
+  'airport', 'parking',
+  // Religious / civic
+  'establishment', 'church', 'mosque', 'synagogue', 'hindu_temple', 'place_of_worship',
+  'embassy', 'courthouse', 'city_hall',
+  // Retail / services not useful for wandering
+  'laundry', 'travel_agency', 'bicycle_store', 'electronics_store', 'furniture_store',
+  'hardware_store', 'home_goods_store', 'jewelry_store', 'pet_store', 'shoe_store', 'florist',
 ]);
 
 export const PLACE_TYPE_LABELS: Record<string, string> = {
@@ -88,6 +77,11 @@ export const PLACE_TYPE_LABELS: Record<string, string> = {
   pharmacy: 'Pharmacy',
   hair_care: 'Salon',
 };
+
+export const PRICED_PLACE_TYPES = new Set([
+  'restaurant', 'cafe', 'bar', 'bakery', 'meal_takeaway',
+  'meal_delivery', 'night_club', 'bowling_alley',
+]);
 
 export const PLACE_CATEGORIES = [
   { label: 'All', value: null },

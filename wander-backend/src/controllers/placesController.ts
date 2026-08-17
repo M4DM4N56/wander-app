@@ -11,7 +11,14 @@ interface PlaceResult {
   openNow: boolean;
   closingTime: string | null;
   photoReferences: string[];
+  priceLevel: number | null;
 }
+
+const GEO_TYPES = new Set([
+  'locality', 'political', 'administrative_area_level_1', 'administrative_area_level_2',
+  'sublocality', 'country', 'route', 'street_address', 'geocode',
+  'colloquial_area', 'neighborhood',
+]);
 
 export async function getNearbyPlaces(req: Request, res: Response): Promise<void> {
   try {
@@ -35,43 +42,52 @@ export async function getNearbyPlaces(req: Request, res: Response): Promise<void
 
     const todayDay = new Date().getDay();
 
-    const places: PlaceResult[] = data.results.map((place) => {
-      const geometry = place.geometry as { location: { lat: number; lng: number } };
-      const openingHours = place.opening_hours as {
-        open_now?: boolean;
-        periods?: Array<{ open: { day: number }; close: { time: string } }>;
-      } | undefined;
+    const places: PlaceResult[] = data.results
+      .map((place) => {
+        const geometry = place.geometry as { location: { lat: number; lng: number } };
+        const openingHours = place.opening_hours as {
+          open_now?: boolean;
+          periods?: Array<{ open: { day: number }; close: { time: string } }>;
+        } | undefined;
 
-      let closingTime: string | null = null;
-      const periods = openingHours?.periods;
-      if (periods) {
-        const todayPeriod = periods.find((p) => p.open.day === todayDay);
-        if (todayPeriod?.close?.time) {
-          const raw = todayPeriod.close.time;
-          const hours = parseInt(raw.slice(0, 2), 10);
-          const mins = raw.slice(2);
-          const suffix = hours >= 12 ? 'PM' : 'AM';
-          const displayHour = hours % 12 === 0 ? 12 : hours % 12;
-          closingTime = `${displayHour}:${mins} ${suffix}`;
+        let closingTime: string | null = null;
+        const periods = openingHours?.periods;
+        if (periods) {
+          const todayPeriod = periods.find((p) => p.open.day === todayDay);
+          if (todayPeriod?.close?.time) {
+            const raw = todayPeriod.close.time;
+            const hours = parseInt(raw.slice(0, 2), 10);
+            const mins = raw.slice(2);
+            const suffix = hours >= 12 ? 'PM' : 'AM';
+            const displayHour = hours % 12 === 0 ? 12 : hours % 12;
+            closingTime = `${displayHour}:${mins} ${suffix}`;
+          }
         }
-      }
 
-      const photos = place.photos as Array<{ photo_reference: string }> | undefined;
-      const photoReferences = (photos ?? []).slice(0, 5).map((p) => p.photo_reference);
+        const photoReferences: string[] = Array.isArray(place.photos)
+          ? (place.photos as Array<{ photo_reference: string }>)
+              .slice(0, 5)
+              .map((p) => p.photo_reference)
+              .filter(Boolean)
+          : [];
 
-      return {
-        placeId: place.place_id as string,
-        name: place.name as string,
-        lat: geometry.location.lat,
-        lng: geometry.location.lng,
-        rating: (place.rating as number | undefined) ?? 0,
-        totalRatings: (place.user_ratings_total as number | undefined) ?? 0,
-        types: (place.types as string[] | undefined) ?? [],
-        openNow: openingHours?.open_now ?? true,
-        closingTime,
-        photoReferences,
-      };
-    });
+        console.log(`Place: ${place.name as string}, Photos: ${(place.photos as unknown[] | undefined)?.length ?? 0}`);
+
+        return {
+          placeId: place.place_id as string,
+          name: place.name as string,
+          lat: geometry.location.lat,
+          lng: geometry.location.lng,
+          rating: (place.rating as number | undefined) ?? 0,
+          totalRatings: (place.user_ratings_total as number | undefined) ?? 0,
+          types: (place.types as string[] | undefined) ?? [],
+          openNow: openingHours?.open_now ?? true,
+          closingTime,
+          photoReferences,
+          priceLevel: (place.price_level as number | undefined) ?? null,
+        };
+      })
+      .filter((place) => !place.types.every((t) => GEO_TYPES.has(t)));
 
     res.status(200).json(places);
   } catch {
