@@ -86,10 +86,9 @@ export default function ResultsScreen() {
             offset: ITEM_HEIGHT * index,
             index,
           })}
-          renderItem={({ item, index }) => (
+          renderItem={({ item }) => (
             <RecommendationCard
               recommendation={item}
-              rank={index + 1}
               onPress={() => router.push(`/detail?placeId=${item.placeId}`)}
             />
           )}

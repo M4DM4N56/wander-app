@@ -28,7 +28,7 @@ export default function HomeScreen() {
   const categoryFilter = useWanderStore((s) => s.categoryFilter);
   const setTimeBudget = useWanderStore((s) => s.setTimeBudget);
   const setTravelMode = useWanderStore((s) => s.setTravelMode);
-  const setCategoryFilter = useWanderStore((s) => s.setCategoryFilter);
+  const toggleCategoryFilter = useWanderStore((s) => s.toggleCategoryFilter);
 
   useEffect(() => {
     if (location) {
@@ -86,14 +86,6 @@ export default function HomeScreen() {
         <Text style={styles.title}>Wander</Text>
         <Text style={styles.subtitle}>You have time to kill. Let's find something.</Text>
 
-        {location && (
-          <View style={styles.locationRow}>
-            <Text style={styles.locationText}>
-              📍 {location.lat.toFixed(2)}, {location.lng.toFixed(2)}
-            </Text>
-          </View>
-        )}
-
         <View style={styles.section}>
           <TimeBudgetSlider value={timeBudget} onChange={setTimeBudget} />
         </View>
@@ -104,18 +96,17 @@ export default function HomeScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>What are you looking for?</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipRow}
-          >
+          <View style={styles.chipRow}>
             {PLACE_CATEGORIES.map((cat) => {
-              const selected = categoryFilter === cat.value;
+              const selected =
+                cat.value === null
+                  ? categoryFilter.length === 0
+                  : categoryFilter.includes(cat.value);
               return (
                 <TouchableOpacity
                   key={String(cat.value)}
                   style={[styles.chip, selected ? styles.chipSelected : styles.chipUnselected]}
-                  onPress={() => setCategoryFilter(cat.value)}
+                  onPress={() => toggleCategoryFilter(cat.value)}
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.chipText, selected ? styles.chipTextSelected : styles.chipTextUnselected]}>
@@ -124,11 +115,11 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
 
         <View style={styles.cta}>
-          <Button label="Find something →" onPress={handleFindSomething} />
+          <Button label="Find something" onPress={handleFindSomething} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -172,13 +163,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginBottom: 20,
   },
-  locationRow: {
-    marginBottom: 24,
-  },
-  locationText: {
-    fontSize: 14,
-    color: '#374151',
-  },
   section: {
     marginBottom: 28,
   },
@@ -188,13 +172,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   chipRow: {
-    gap: 8,
-    paddingVertical: 2,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    marginRight: 8,
+    marginBottom: 8,
   },
   chipSelected: {
     backgroundColor: '#4F46E5',

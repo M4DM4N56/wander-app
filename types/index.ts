@@ -9,6 +9,8 @@ export interface Place {
   totalRatings: number;
   types: string[];
   openNow: boolean;
+  closingTime: string | null;
+  photoReferences: string[];
 }
 
 export interface DistanceResult {

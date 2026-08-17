@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  Dimensions,
+  Image,
   Linking,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Platform,
   ScrollView,
   StyleSheet,
@@ -13,13 +17,19 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
 import { useWanderStore } from '../store/wanderStore';
 import { formatTime } from '../utils/formatTime';
+import { roundVenueTime } from '../utils/roundVenueTime';
+import { getPhotoUrl } from '../utils/getPhotoUrl';
 import { Button } from '../components/ui/Button';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export default function DetailScreen() {
   const router = useRouter();
   const { placeId } = useLocalSearchParams<{ placeId: string }>();
   const recommendations = useWanderStore((s) => s.recommendations);
   const rec = recommendations.find((r) => r.placeId === placeId);
+  const [activePhoto, setActivePhoto] = useState(0);
+  const carouselRef = useRef<ScrollView>(null);
 
   if (!rec) {
     return (
@@ -42,6 +52,11 @@ export default function DetailScreen() {
     Linking.openURL(url);
   };
 
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    setActivePhoto(index);
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <ScrollView
@@ -53,6 +68,36 @@ export default function DetailScreen() {
         </TouchableOpacity>
 
         <Text style={styles.name}>{rec.name}</Text>
+
+        {rec.photoReferences.length > 0 && (
+          <View style={styles.carouselWrapper}>
+            <ScrollView
+              ref={carouselRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={handleScroll}
+              style={styles.carousel}
+            >
+              {rec.photoReferences.map((ref) => (
+                <Image
+                  key={ref}
+                  source={{ uri: getPhotoUrl(ref, SCREEN_WIDTH) }}
+                  style={styles.carouselImage}
+                  resizeMode="cover"
+                />
+              ))}
+            </ScrollView>
+            <View style={styles.dots}>
+              {rec.photoReferences.map((_, i) => (
+                <View
+                  key={i}
+                  style={[styles.dot, i === activePhoto ? styles.dotActive : styles.dotInactive]}
+                />
+              ))}
+            </View>
+          </View>
+        )}
 
         <View style={styles.mapWrapper}>
           <MapView
@@ -82,33 +127,29 @@ export default function DetailScreen() {
             </Text>
           </View>
 
-          <View style={styles.infoRow}>
-            {rec.openNow ? (
-              <View style={[styles.badge, styles.badgeOpen]}>
-                <Text style={styles.badgeOpenText}>Open now</Text>
-              </View>
-            ) : (
+          {!rec.openNow && (
+            <View style={styles.infoRow}>
               <View style={[styles.badge, styles.badgeClosed]}>
                 <Text style={styles.badgeClosedText}>Closed</Text>
               </View>
-            )}
-          </View>
+            </View>
+          )}
 
           <View style={styles.infoRow}>
             <Text style={styles.infoText}>
-              🚶 {formatTime(rec.travelTimeSeconds)} to get there
+              → {formatTime(rec.travelTimeSeconds)} to get there
             </Text>
           </View>
 
           <View style={styles.infoRow}>
             <Text style={styles.infoText}>
-              ⏱ About {rec.timeAtVenueMinutes} minutes to spend here
+              ~{roundVenueTime(rec.timeAtVenueMinutes)} min to spend here
             </Text>
           </View>
 
           <View style={styles.infoRow}>
             <Text style={styles.infoText}>
-              🔄 Round trip: {formatTime(rec.travelTimeSeconds * 2)}
+              Round trip: {formatTime(rec.travelTimeSeconds * 2)}
             </Text>
           </View>
         </View>
@@ -125,12 +166,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
   },
   scrollContent: {
-    padding: 16,
     paddingBottom: 32,
   },
   backButton: {
     alignSelf: 'flex-start',
     marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   backText: {
     fontSize: 16,
@@ -142,11 +184,40 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#111827',
     marginBottom: 16,
+    paddingHorizontal: 16,
+  },
+  carouselWrapper: {
+    marginBottom: 16,
+  },
+  carousel: {
+    width: SCREEN_WIDTH,
+    height: 220,
+  },
+  carouselImage: {
+    width: SCREEN_WIDTH,
+    height: 220,
+  },
+  dots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginHorizontal: 3,
+  },
+  dotActive: {
+    backgroundColor: '#4F46E5',
+  },
+  dotInactive: {
+    backgroundColor: '#D1D5DB',
   },
   mapWrapper: {
     width: '100%',
     height: 180,
-    borderRadius: 12,
     marginBottom: 20,
     overflow: 'hidden',
   },
@@ -159,6 +230,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
+    marginHorizontal: 16,
     gap: 12,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
@@ -181,14 +253,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
-  },
-  badgeOpen: {
-    backgroundColor: '#D1FAE5',
-  },
-  badgeOpenText: {
-    fontSize: 13,
-    color: '#065F46',
-    fontWeight: '500',
   },
   badgeClosed: {
     backgroundColor: '#FEE2E2',
