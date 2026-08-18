@@ -5,7 +5,7 @@ import { fetchTravelTimes } from '../services/distanceService';
 import { rankPlaces } from '../utils/ranking';
 import { radiusFromBudget } from '../utils/radiusFromBudget';
 import { API_BASE_URL } from '../constants';
-import { Place } from '../types';
+import { DistanceResult, Place } from '../types';
 
 export function useRecommendations() {
   const userLocation = useWanderStore((s) => s.userLocation);
@@ -20,7 +20,7 @@ export function useRecommendations() {
   useEffect(() => {
     console.log('useRecommendations effect — userLocation:', userLocation, '| API_BASE_URL:', API_BASE_URL);
 
-    if (userLocation === null) {
+    if (!userLocation?.lat || !userLocation?.lng) {
       return;
     }
 
@@ -46,12 +46,17 @@ export function useRecommendations() {
           return;
         }
 
-        const distanceResults = await fetchTravelTimes(
-          lat,
-          lng,
-          candidates.map((p) => ({ placeId: p.placeId, lat: p.lat, lng: p.lng })),
-          travelMode
-        );
+        let distanceResults: DistanceResult[] = [];
+        try {
+          distanceResults = await fetchTravelTimes(
+            lat,
+            lng,
+            candidates.map((p) => ({ placeId: p.placeId, lat: p.lat, lng: p.lng })),
+            travelMode
+          );
+        } catch (err) {
+          console.warn('fetchTravelTimes failed, proceeding without distance data:', err);
+        }
 
         const ranked = rankPlaces(candidates, distanceResults, timeBudget);
 
@@ -63,5 +68,5 @@ export function useRecommendations() {
         setLoading(false);
       }
     })();
-  }, [userLocation]);
+  }, [userLocation, categoryFilter]);
 }

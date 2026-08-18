@@ -17,7 +17,38 @@ interface MatrixElement {
 }
 
 interface MatrixResponse {
-  rows: [{ elements: MatrixElement[] }];
+  status?: string;
+  rows?: [{ elements: MatrixElement[] }];
+}
+
+const CHUNK_SIZE = 25;
+
+async function fetchChunk(
+  origin: string,
+  chunk: Destination[],
+  mode: string,
+  apiKey: string,
+): Promise<DistanceResult[]> {
+  const destinationsParam = chunk.map((d) => `${d.lat},${d.lng}`).join("|");
+
+  const url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json");
+  url.searchParams.set("origins", origin);
+  url.searchParams.set("destinations", destinationsParam);
+  url.searchParams.set("mode", mode);
+  url.searchParams.set("key", apiKey);
+
+  const response = await fetch(url.toString());
+  const data = await response.json() as MatrixResponse;
+
+  if (!data.rows?.[0]?.elements) {
+    console.warn('Distance Matrix API returned no rows:', data.status);
+    return chunk.map((d) => ({ placeId: d.placeId, durationSeconds: null }));
+  }
+
+  return data.rows[0].elements.map((element, index) => ({
+    placeId: chunk[index].placeId,
+    durationSeconds: element.status === "OK" ? (element.duration?.value ?? null) : null,
+  }));
 }
 
 export async function getTravelTimes(req: Request, res: Response): Promise<void> {
@@ -40,24 +71,20 @@ export async function getTravelTimes(req: Request, res: Response): Promise<void>
     }
 
     const origin = `${originLat},${originLng}`;
-    const destinationsParam = destinations.map((d) => `${d.lat},${d.lng}`).join("|");
+    const apiKey = process.env.GOOGLE_API_KEY ?? "";
 
-    const url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json");
-    url.searchParams.set("origins", origin);
-    url.searchParams.set("destinations", destinationsParam);
-    url.searchParams.set("mode", mode);
-    url.searchParams.set("key", process.env.GOOGLE_API_KEY ?? "");
+    const chunks: Destination[][] = [];
+    for (let i = 0; i < destinations.length; i += CHUNK_SIZE) {
+      chunks.push(destinations.slice(i, i + CHUNK_SIZE));
+    }
 
-    const response = await fetch(url.toString());
-    const data = await response.json() as MatrixResponse;
+    const chunkResults = await Promise.all(
+      chunks.map((chunk) => fetchChunk(origin, chunk, mode, apiKey))
+    );
 
-    const results: DistanceResult[] = data.rows[0].elements.map((element, index) => ({
-      placeId: destinations[index].placeId,
-      durationSeconds: element.status === "OK" ? (element.duration?.value ?? null) : null,
-    }));
-
-    res.status(200).json(results);
-  } catch {
-    res.status(500).json({ error: "Failed to fetch travel times" });
+    res.status(200).json(chunkResults.flat());
+  } catch (err) {
+    console.error('Travel times error:', err);
+    res.status(200).json([]);
   }
 }
