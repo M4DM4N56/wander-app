@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Recommendation } from '../../types';
 import { Card } from '../ui/Card';
 import { formatTime } from '../../utils/formatTime';
@@ -46,72 +46,65 @@ function getOpenBadge(
 export function RecommendationCard({ recommendation, onPress }: Props) {
   const badge = getOpenBadge(recommendation.openNow, recommendation.closingTime);
   const typeLabel = getPlaceTypeLabel(recommendation.types);
-  const photos = recommendation.photoReferences.slice(0, 2);
   const isPriced = recommendation.types.some((t) => PRICED_PLACE_TYPES.has(t));
   const priceLabel = isPriced ? getPriceLabel(recommendation.priceLevel) : null;
+  const hasPhoto = recommendation.photoReferences.length > 0;
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <Card style={styles.card}>
-        {photos.length > 0 && (
-          <View style={styles.imageStripWrapper}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingRight: 8 }}
-            >
-              {photos.map((ref) => (
-                <Image
-                  key={ref}
-                  source={{ uri: getPhotoUrl(ref, 400) }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
-              ))}
-            </ScrollView>
+        {hasPhoto && (
+          <View style={styles.imageWrapper}>
+            <Image
+              source={{ uri: getPhotoUrl(recommendation.photoReferences[0], 400) }}
+              style={styles.image}
+              resizeMode="cover"
+            />
           </View>
         )}
 
-        <View style={styles.titleRow}>
-          <Text style={styles.name} numberOfLines={1}>{recommendation.name}</Text>
-          <Text style={styles.rating}>★ {recommendation.rating.toFixed(1)}</Text>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Text style={styles.infoText}>
-            → {formatTime(recommendation.travelTimeSeconds)} away
-          </Text>
-          <Text style={styles.infoTextMuted}>
-            {' '}(round trip: {formatTime(recommendation.travelTimeSeconds * 2)})
-          </Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoText}>
-            ~{roundVenueTime(recommendation.timeAtVenueMinutes)} min to spend here
-          </Text>
-        </View>
-
-        <View style={styles.bottomRow}>
-          <View style={styles.bottomLeft}>
-            {typeLabel && (
-              <View style={styles.typeTag}>
-                <Text style={styles.typeTagText}>{typeLabel}</Text>
-              </View>
-            )}
-            {priceLabel && (
-              <View style={styles.priceTag}>
-                <Text style={styles.priceTagText}>{priceLabel}</Text>
-              </View>
-            )}
-            {badge && (
-              <View style={[styles.badge, badge.style === 'closed' ? styles.badgeClosed : styles.badgeWarning]}>
-                <Text style={[styles.badgeText, badge.style === 'closed' ? styles.badgeClosedText : styles.badgeWarningText]}>
-                  {badge.label}
-                </Text>
-              </View>
-            )}
+        <View style={styles.content}>
+          <View style={styles.titleRow}>
+            <Text style={styles.name} numberOfLines={1}>{recommendation.name}</Text>
+            <Text style={styles.rating}>★ {recommendation.rating.toFixed(1)}</Text>
           </View>
-          <Text style={styles.chevron}>›</Text>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoText}>
+              → {formatTime(recommendation.travelTimeSeconds)} away
+            </Text>
+            <Text style={styles.infoTextMuted}>
+              {' '}(round trip: {formatTime(recommendation.travelTimeSeconds * 2)})
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoText}>
+              ~{roundVenueTime(recommendation.timeAtVenueMinutes)} min to spend here
+            </Text>
+          </View>
+
+          <View style={styles.bottomRow}>
+            <View style={styles.bottomLeft}>
+              {typeLabel && (
+                <View style={styles.typeTag}>
+                  <Text style={styles.typeTagText}>{typeLabel}</Text>
+                </View>
+              )}
+              {priceLabel && (
+                <View style={styles.priceTag}>
+                  <Text style={styles.priceTagText}>{priceLabel}</Text>
+                </View>
+              )}
+              {badge && (
+                <View style={[styles.badge, badge.style === 'closed' ? styles.badgeClosed : styles.badgeWarning]}>
+                  <Text style={[styles.badgeText, badge.style === 'closed' ? styles.badgeClosedText : styles.badgeWarningText]}>
+                    {badge.label}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </View>
         </View>
       </Card>
     </TouchableOpacity>
@@ -120,22 +113,20 @@ export function RecommendationCard({ recommendation, onPress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
-    padding: 16,
+    padding: 0,
+    borderRadius: 16,
   },
-  imageStripWrapper: {
-    marginHorizontal: -16,
-    marginTop: -16,
-    marginBottom: 12,
+  imageWrapper: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     overflow: 'hidden',
-    paddingHorizontal: 16,
-    paddingTop: 16,
   },
   image: {
-    width: 150,
-    height: 110,
-    borderRadius: 8,
-    marginRight: 8,
+    width: '100%',
+    height: 130,
+  },
+  content: {
+    padding: 16,
   },
   titleRow: {
     flexDirection: 'row',

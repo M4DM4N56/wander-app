@@ -22,7 +22,14 @@ export async function fetchNearbyPlaces(
   }
 
   const results = await Promise.all(
-    types.map((type) => apiGet<Place[]>('/api/places', { ...baseParams, type }))
+    types.map(async (type) => {
+      try {
+        return await apiGet<Place[]>('/api/places', { ...baseParams, type });
+      } catch (err) {
+        console.warn(`Failed to fetch places for type: ${type}`, err);
+        return [] as Place[];
+      }
+    })
   );
 
   const seen = new Set<string>();

@@ -21,14 +21,14 @@ const GEO_TYPES = new Set([
 ]);
 
 export async function getNearbyPlaces(req: Request, res: Response): Promise<void> {
+  const { lat, lng, radius, type } = req.query;
+
+  if (!lat || !lng || !radius) {
+    res.status(400).json({ error: "lat, lng, and radius are required" });
+    return;
+  }
+
   try {
-    const { lat, lng, radius, type } = req.query;
-
-    if (!lat || !lng || !radius) {
-      res.status(400).json({ error: "lat, lng, and radius are required" });
-      return;
-    }
-
     const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json");
     url.searchParams.set("location", `${lat},${lng}`);
     url.searchParams.set("radius", String(radius));
@@ -38,11 +38,26 @@ export async function getNearbyPlaces(req: Request, res: Response): Promise<void
     }
 
     const response = await fetch(url.toString());
-    const data = await response.json() as { results: Record<string, unknown>[] };
+    const data = await response.json() as {
+      status?: string;
+      error_message?: string;
+      results?: Record<string, unknown>[];
+    };
+
+    if (data.status === 'ZERO_RESULTS') {
+      res.status(200).json([]);
+      return;
+    }
+
+    if (data.status !== 'OK') {
+      console.warn('Google Places API returned:', data.status, data.error_message ?? '');
+      res.status(200).json([]);
+      return;
+    }
 
     const todayDay = new Date().getDay();
 
-    const places: PlaceResult[] = data.results
+    const places: PlaceResult[] = (data.results ?? [])
       .map((place) => {
         const geometry = place.geometry as { location: { lat: number; lng: number } };
         const openingHours = place.opening_hours as {
@@ -90,8 +105,9 @@ export async function getNearbyPlaces(req: Request, res: Response): Promise<void
       .filter((place) => !place.types.every((t) => GEO_TYPES.has(t)));
 
     res.status(200).json(places);
-  } catch {
-    res.status(500).json({ error: "Failed to fetch places" });
+  } catch (err) {
+    console.error('Places fetch error:', err);
+    res.status(200).json([]);
   }
 }
 

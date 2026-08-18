@@ -5,6 +5,7 @@ import { fetchTravelTimes } from '../services/distanceService';
 import { rankPlaces } from '../utils/ranking';
 import { radiusFromBudget } from '../utils/radiusFromBudget';
 import { API_BASE_URL } from '../constants';
+import { Place } from '../types';
 
 export function useRecommendations() {
   const userLocation = useWanderStore((s) => s.userLocation);
@@ -19,7 +20,6 @@ export function useRecommendations() {
   useEffect(() => {
     console.log('useRecommendations effect — userLocation:', userLocation, '| API_BASE_URL:', API_BASE_URL);
 
-    // Wait silently until the home screen finishes resolving location into the store.
     if (userLocation === null) {
       return;
     }
@@ -32,7 +32,19 @@ export function useRecommendations() {
         const { lat, lng } = userLocation;
         const radius = radiusFromBudget(timeBudget, travelMode);
 
-        const candidates = await fetchNearbyPlaces(lat, lng, radius, categoryFilter);
+        let candidates: Place[] = [];
+        try {
+          candidates = await fetchNearbyPlaces(lat, lng, radius, categoryFilter);
+        } catch (err) {
+          console.warn('fetchNearbyPlaces failed, continuing with empty candidates:', err);
+        }
+
+        if (candidates.length === 0) {
+          setRecommendations([]);
+          setCandidates([]);
+          setLoading(false);
+          return;
+        }
 
         const distanceResults = await fetchTravelTimes(
           lat,

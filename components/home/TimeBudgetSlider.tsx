@@ -10,19 +10,21 @@ interface TimeBudgetSliderProps {
 export function TimeBudgetSlider({ value, onChange }: TimeBudgetSliderProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.value}>{value} minutes</Text>
-      <Slider
-        style={styles.slider}
-        minimumValue={15}
-        maximumValue={180}
-        step={5}
-        value={value}
-        onValueChange={onChange}
-        minimumTrackTintColor="#4F46E5"
-        maximumTrackTintColor="#D1D5DB"
-        thumbTintColor="#4F46E5"
-      />
       <Text style={styles.label}>How much time do you have?</Text>
+      <View style={styles.row}>
+        <Text style={styles.value} numberOfLines={1}>{value} min</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={15}
+          maximumValue={180}
+          step={5}
+          value={value}
+          onValueChange={onChange}
+          minimumTrackTintColor="#4F46E5"
+          maximumTrackTintColor="#D1D5DB"
+          thumbTintColor="#4F46E5"
+        />
+      </View>
     </View>
   );
 }
@@ -31,21 +33,24 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
   },
-  value: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
   label: {
     fontSize: 14,
     color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 4,
+    marginBottom: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  value: {
+    width: 70,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4F46E5',
+  },
+  slider: {
+    flex: 1,
+    height: 40,
   },
 });

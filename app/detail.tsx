@@ -1,10 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import {
-  Dimensions,
   Image,
   Linking,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
   ScrollView,
   StyleSheet,
@@ -20,17 +17,22 @@ import { roundVenueTime } from '../utils/roundVenueTime';
 import { getPhotoUrl } from '../utils/getPhotoUrl';
 import { getPriceLabel } from '../utils/getPriceLabel';
 import { PRICED_PLACE_TYPES } from '../constants';
+import { TravelMode } from '../types';
 import { Button } from '../components/ui/Button';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const TRAVEL_MODE_LABELS: Record<TravelMode, string> = {
+  walking: 'walk',
+  cycling: 'ride',
+  driving: 'drive',
+  transit: 'commute',
+};
 
 export default function DetailScreen() {
   const router = useRouter();
   const { placeId } = useLocalSearchParams<{ placeId: string }>();
   const recommendations = useWanderStore((s) => s.recommendations);
+  const travelMode = useWanderStore((s) => s.travelMode);
   const rec = recommendations.find((r) => r.placeId === placeId);
-  const [activePhoto, setActivePhoto] = useState(0);
-  const carouselRef = useRef<ScrollView>(null);
 
   if (!rec) {
     return (
@@ -45,17 +47,14 @@ export default function DetailScreen() {
     );
   }
 
+  const modeLabel = TRAVEL_MODE_LABELS[travelMode];
+
   const handleNavigate = () => {
     const url =
       Platform.OS === 'android'
         ? `geo:${rec.lat},${rec.lng}?q=${rec.lat},${rec.lng}(${encodeURIComponent(rec.name)})`
         : `maps:0,0?q=${encodeURIComponent(rec.name)}@${rec.lat},${rec.lng}`;
     Linking.openURL(url);
-  };
-
-  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-    setActivePhoto(index);
   };
 
   return (
@@ -71,41 +70,26 @@ export default function DetailScreen() {
         <Text style={styles.name}>{rec.name}</Text>
 
         {rec.photoReferences.length > 0 && (
-          <View style={styles.carouselWrapper}>
-            <ScrollView
-              ref={carouselRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={handleScroll}
-              style={styles.carousel}
-            >
-              {rec.photoReferences.map((ref, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: getPhotoUrl(ref, 800) }}
-                  style={styles.carouselImage}
-                  resizeMode="cover"
-                />
-              ))}
-            </ScrollView>
-            <View style={styles.dots}>
-              {rec.photoReferences.map((_, i) => (
-                <View
-                  key={i}
-                  style={[styles.dot, i === activePhoto ? styles.dotActive : styles.dotInactive]}
-                />
-              ))}
-            </View>
+          <View style={styles.photoWrapper}>
+            <Image
+              source={{ uri: getPhotoUrl(rec.photoReferences[0], 800) }}
+              style={styles.photo}
+              resizeMode="cover"
+            />
           </View>
         )}
 
         <View style={styles.infoSection}>
-          <View style={styles.infoRow}>
+          <View style={styles.ratingRow}>
             <Text style={styles.infoText}>
               ★ {rec.rating.toFixed(1)}{' '}
               <Text style={styles.reviewCount}>({rec.totalRatings} reviews)</Text>
             </Text>
+            {rec.types.some((t) => PRICED_PLACE_TYPES.has(t)) && getPriceLabel(rec.priceLevel) && (
+              <View style={styles.priceTag}>
+                <Text style={styles.priceTagText}>{getPriceLabel(rec.priceLevel)}</Text>
+              </View>
+            )}
           </View>
 
           {!rec.openNow && (
@@ -116,17 +100,14 @@ export default function DetailScreen() {
             </View>
           )}
 
-          {rec.types.some((t) => PRICED_PLACE_TYPES.has(t)) && getPriceLabel(rec.priceLevel) && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoText}>
-                Price range: {getPriceLabel(rec.priceLevel)} per person
-              </Text>
-            </View>
-          )}
-
           <View style={styles.infoRow}>
-            <Text style={styles.infoText}>
-              → {formatTime(rec.travelTimeSeconds)} to get there
+            <Text>
+              <Text style={styles.travelPrimary}>
+                {formatTime(rec.travelTimeSeconds)} {modeLabel}
+              </Text>
+              <Text style={styles.travelSecondary}>
+                {' '}({formatTime(rec.travelTimeSeconds * 2)} round trip)
+              </Text>
             </Text>
           </View>
 
@@ -135,15 +116,11 @@ export default function DetailScreen() {
               ~{roundVenueTime(rec.timeAtVenueMinutes)} min to spend here
             </Text>
           </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoText}>
-              Round trip: {formatTime(rec.travelTimeSeconds * 2)}
-            </Text>
-          </View>
         </View>
 
-        <Button label="Take me there →" onPress={handleNavigate} />
+        <View style={styles.buttonWrapper}>
+          <Button label="Take me there →" onPress={handleNavigate} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -172,43 +149,25 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#111827',
-    marginBottom: 16,
+    marginBottom: 0,
     paddingHorizontal: 16,
   },
-  carouselWrapper: {
+  photoWrapper: {
+    marginHorizontal: 16,
+    marginTop: 12,
     marginBottom: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
-  carousel: {
-    width: SCREEN_WIDTH,
+  photo: {
+    width: '100%',
     height: 220,
-  },
-  carouselImage: {
-    width: SCREEN_WIDTH,
-    height: 220,
-  },
-  dots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginHorizontal: 3,
-  },
-  dotActive: {
-    backgroundColor: '#4F46E5',
-  },
-  dotInactive: {
-    backgroundColor: '#D1D5DB',
   },
   infoSection: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 24,
+    marginBottom: 16,
     marginHorizontal: 16,
     gap: 12,
     shadowColor: '#000000',
@@ -217,6 +176,22 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
+  ratingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  priceTag: {
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  priceTagText: {
+    fontSize: 11,
+    color: '#16A34A',
+    fontWeight: '500',
+  },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -224,6 +199,14 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 15,
     color: '#374151',
+  },
+  travelPrimary: {
+    fontSize: 15,
+    color: '#374151',
+  },
+  travelSecondary: {
+    fontSize: 13,
+    color: '#9CA3AF',
   },
   reviewCount: {
     color: '#6B7280',
@@ -240,6 +223,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#991B1B',
     fontWeight: '500',
+  },
+  buttonWrapper: {
+    marginHorizontal: 16,
   },
   errorContainer: {
     flex: 1,

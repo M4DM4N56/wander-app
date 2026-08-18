@@ -84,7 +84,6 @@ export const PRICED_PLACE_TYPES = new Set([
 ]);
 
 export const PLACE_CATEGORIES = [
-  { label: 'All', value: null },
   { label: 'Food & Drink', value: 'restaurant' },
   { label: 'Coffee', value: 'cafe' },
   { label: 'Nature', value: 'park' },

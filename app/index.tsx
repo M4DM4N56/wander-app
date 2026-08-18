@@ -86,6 +86,8 @@ export default function HomeScreen() {
         <Text style={styles.title}>Wander</Text>
         <Text style={styles.subtitle}>You have time to kill. Let's find something.</Text>
 
+        <View style={styles.divider} />
+
         <View style={styles.section}>
           <TimeBudgetSlider value={timeBudget} onChange={setTimeBudget} />
         </View>
@@ -95,16 +97,13 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>What are you looking for?</Text>
+          <Text style={styles.sectionLabel}>Filter by type</Text>
           <View style={styles.chipRow}>
             {PLACE_CATEGORIES.map((cat) => {
-              const selected =
-                cat.value === null
-                  ? categoryFilter.length === 0
-                  : categoryFilter.includes(cat.value);
+              const selected = categoryFilter.includes(cat.value);
               return (
                 <TouchableOpacity
-                  key={String(cat.value)}
+                  key={cat.value}
                   style={[styles.chip, selected ? styles.chipSelected : styles.chipUnselected]}
                   onPress={() => toggleCategoryFilter(cat.value)}
                   activeOpacity={0.7}
@@ -161,7 +160,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#6B7280',
-    marginBottom: 20,
+    marginBottom: 0,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginVertical: 20,
   },
   section: {
     marginBottom: 28,
