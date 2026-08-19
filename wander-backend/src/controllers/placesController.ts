@@ -14,17 +14,6 @@ interface PlaceResult {
   priceLevel: number | null;
 }
 
-const HARD_EXCLUDED_TYPES = new Set([
-  'lodging', 'hotel', 'motel', 'inn',
-  'doctor', 'dentist', 'hospital', 'health',
-  'school', 'primary_school', 'secondary_school', 'university',
-  'locality', 'political', 'administrative_area_level_1',
-  'administrative_area_level_2', 'sublocality', 'neighborhood',
-  'route', 'street_address', 'geocode', 'colloquial_area',
-  'real_estate_agency', 'lawyer', 'accounting', 'insurance_agency',
-  'funeral_home', 'cemetery', 'storage', 'moving_company',
-]);
-
 const GEO_TYPES = new Set([
   'locality', 'political', 'administrative_area_level_1', 'administrative_area_level_2',
   'sublocality', 'country', 'route', 'street_address', 'geocode',
@@ -69,10 +58,6 @@ export async function getNearbyPlaces(req: Request, res: Response): Promise<void
     const todayDay = new Date().getDay();
 
     const places: PlaceResult[] = (data.results ?? [])
-      .filter((result) => {
-        const types = (result.types as string[] | undefined) ?? [];
-        return !types.some((t) => HARD_EXCLUDED_TYPES.has(t));
-      })
       .map((place) => {
         const geometry = place.geometry as { location: { lat: number; lng: number } };
         const openingHours = place.opening_hours as {

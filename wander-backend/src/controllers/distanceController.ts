@@ -60,8 +60,6 @@ export async function getTravelTimes(req: Request, res: Response): Promise<void>
       mode?: string;
     };
 
-    console.log('[distance] received request, destinations count:', destinations?.length ?? 'undefined');
-
     if (originLat == null || originLng == null || !destinations || !mode) {
       res.status(400).json({ error: "originLat, originLng, destinations, and mode are required" });
       return;
@@ -80,19 +78,13 @@ export async function getTravelTimes(req: Request, res: Response): Promise<void>
       chunks.push(destinations.slice(i, i + CHUNK_SIZE));
     }
 
-    console.log('[distance] processing', chunks.length, 'chunks of up to 25');
-
     const chunkResults = await Promise.all(
       chunks.map((chunk) => fetchChunk(origin, chunk, mode, apiKey))
     );
 
-    chunkResults.forEach((results, i) => {
-      console.log('[distance] chunk', i, 'returned', results.length, 'results');
-    });
-
     res.status(200).json(chunkResults.flat());
   } catch (err) {
-    console.error('[distance] fatal error:', err);
+    console.error('Travel times error:', err);
     res.status(200).json([]);
   }
 }
