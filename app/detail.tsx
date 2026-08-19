@@ -82,8 +82,13 @@ export default function DetailScreen() {
         <View style={styles.infoSection}>
           <View style={styles.ratingRow}>
             <Text style={styles.infoText}>
-              ★ {rec.rating.toFixed(1)}{' '}
-              <Text style={styles.reviewCount}>({rec.totalRatings} reviews)</Text>
+              {rec.totalRatings === 0 ? (
+                'No ratings yet'
+              ) : (
+                <>★ {rec.rating.toFixed(1)}{' '}
+                  <Text style={styles.reviewCount}>({rec.totalRatings} reviews)</Text>
+                </>
+              )}
             </Text>
             {rec.types.some((t) => PRICED_PLACE_TYPES.has(t)) && getPriceLabel(rec.priceLevel) && (
               <View style={styles.priceTag}>

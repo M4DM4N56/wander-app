@@ -28,7 +28,7 @@ export function WanderMap({ userLocation, recommendations, onPinPress }: Props) 
           pinColor="#4F46E5"
         />
 
-        {recommendations.map((rec) => (
+        {recommendations.length > 0 && recommendations.map((rec) => (
           <Marker
             key={rec.placeId}
             coordinate={{ latitude: rec.lat, longitude: rec.lng }}
@@ -45,8 +45,15 @@ export function WanderMap({ userLocation, recommendations, onPinPress }: Props) 
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    height: 300,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   map: {
     width: '100%',

@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,7 +21,7 @@ import { TravelMode } from '../types';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { location, isLoading, error } = useLocation();
+  const { location, isLoading, error, permissionStatus } = useLocation();
 
   const setUserLocation = useWanderStore((s) => s.setUserLocation);
   const timeBudget = useWanderStore((s) => s.timeBudget);
@@ -67,11 +68,23 @@ export default function HomeScreen() {
   }
 
   if (error) {
+    const isPermissionDenied = permissionStatus !== null && permissionStatus !== 'granted';
     return (
       <SafeAreaView style={styles.root}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Text style={styles.retryHint}>Check your location settings and restart the app.</Text>
+          {isPermissionDenied ? (
+            <>
+              <Text style={styles.errorText}>
+                Wander needs your location to find nearby places.
+              </Text>
+              <Button label="Open settings" onPress={() => Linking.openSettings()} />
+            </>
+          ) : (
+            <>
+              <Text style={styles.errorText}>{error}</Text>
+              <Text style={styles.retryHint}>Check your location settings and restart the app.</Text>
+            </>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -84,7 +97,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>Wander</Text>
-        <Text style={styles.subtitle}>You have time to kill. Let's find something.</Text>
+        <Text style={styles.subtitle}>Lets kill some time.</Text>
 
         <View style={styles.divider} />
 
@@ -97,7 +110,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Filter by type</Text>
+          <Text style={styles.sectionLabel}>What do you want to do?</Text>
           <View style={styles.chipRow}>
             {PLACE_CATEGORIES.map((cat) => {
               const selected = categoryFilter.includes(cat.value);
@@ -116,6 +129,8 @@ export default function HomeScreen() {
             })}
           </View>
         </View>
+
+        <View style={styles.divider} />
 
         <View style={styles.cta}>
           <Button label="Find something" onPress={handleFindSomething} />

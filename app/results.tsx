@@ -30,6 +30,8 @@ export default function ResultsScreen() {
   const userLocation = useWanderStore((s) => s.userLocation);
   const timeBudget = useWanderStore((s) => s.timeBudget);
 
+  const reset = useWanderStore((s) => s.reset);
+
   const flatListRef = useRef<FlatList<Recommendation>>(null);
 
   const handlePinPress = (placeId: string) => {
@@ -52,7 +54,7 @@ export default function ResultsScreen() {
       return (
         <View style={styles.stateContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <Button label="Try again" onPress={() => router.replace('/results')} />
+          <Button label="Try again" onPress={() => { reset(); router.replace('/'); }} />
         </View>
       );
     }

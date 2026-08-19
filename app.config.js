@@ -6,6 +6,11 @@ export default {
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
+    splash: {
+      image: './assets/splash.png',
+      resizeMode: 'contain',
+      backgroundColor: '#4F46E5',
+    },
     userInterfaceStyle: 'light',
     plugins: ['expo-router'],
     
