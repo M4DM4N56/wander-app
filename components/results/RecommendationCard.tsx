@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Recommendation } from '../../types';
 import { Card } from '../ui/Card';
@@ -44,21 +44,24 @@ function getOpenBadge(
 }
 
 export function RecommendationCard({ recommendation, onPress }: Props) {
+  const [imageError, setImageError] = useState(false);
   const badge = getOpenBadge(recommendation.openNow, recommendation.closingTime);
   const typeLabel = getPlaceTypeLabel(recommendation.types);
   const isPriced = recommendation.types.some((t) => PRICED_PLACE_TYPES.has(t));
   const priceLabel = isPriced ? getPriceLabel(recommendation.priceLevel) : null;
-  const hasPhoto = recommendation.photoReferences.length > 0;
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <Card style={styles.card}>
-        {hasPhoto && (
+        {!imageError && recommendation.photoReferences?.[0] && (
           <View style={styles.imageWrapper}>
             <Image
               source={{ uri: getPhotoUrl(recommendation.photoReferences[0], 400) }}
               style={styles.image}
               resizeMode="cover"
+              loadingIndicatorSource={undefined}
+              fadeDuration={200}
+              onError={() => setImageError(true)}
             />
           </View>
         )}

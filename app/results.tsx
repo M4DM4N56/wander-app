@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   FlatList,
   ScrollView,
@@ -11,14 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useWanderStore } from '../store/wanderStore';
 import { useRecommendations } from '../hooks/useRecommendations';
-import { WanderMap } from '../components/results/WanderMap';
 import { RecommendationCard } from '../components/results/RecommendationCard';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
-import { Recommendation } from '../types';
-
-// Estimated card height (content + separator) used by getItemLayout for scrollToIndex
-const ITEM_HEIGHT = 172;
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -27,19 +22,8 @@ export default function ResultsScreen() {
   const isLoading = useWanderStore((s) => s.isLoading);
   const error = useWanderStore((s) => s.error);
   const recommendations = useWanderStore((s) => s.recommendations);
-  const userLocation = useWanderStore((s) => s.userLocation);
   const timeBudget = useWanderStore((s) => s.timeBudget);
-
   const reset = useWanderStore((s) => s.reset);
-
-  const flatListRef = useRef<FlatList<Recommendation>>(null);
-
-  const handlePinPress = (placeId: string) => {
-    const index = recommendations.findIndex((r) => r.placeId === placeId);
-    if (index !== -1) {
-      flatListRef.current?.scrollToIndex({ index, animated: true });
-    }
-  };
 
   const renderMainContent = () => {
     if (isLoading) {
@@ -70,34 +54,23 @@ export default function ResultsScreen() {
     }
 
     return (
-      <>
-        {userLocation && (
-          <WanderMap
-            userLocation={userLocation}
-            recommendations={recommendations}
-            onPinPress={handlePinPress}
+      <FlatList
+        data={recommendations}
+        keyExtractor={(item) => item.placeId}
+        scrollEnabled={false}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={5}
+        removeClippedSubviews={true}
+        renderItem={({ item }) => (
+          <RecommendationCard
+            recommendation={item}
+            onPress={() => router.push(`/detail?placeId=${item.placeId}`)}
           />
         )}
-        <FlatList
-          ref={flatListRef}
-          data={recommendations}
-          keyExtractor={(item) => item.placeId}
-          scrollEnabled={false}
-          getItemLayout={(_, index) => ({
-            length: ITEM_HEIGHT,
-            offset: ITEM_HEIGHT * index,
-            index,
-          })}
-          renderItem={({ item }) => (
-            <RecommendationCard
-              recommendation={item}
-              onPress={() => router.push(`/detail?placeId=${item.placeId}`)}
-            />
-          )}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          contentContainerStyle={styles.listContent}
-        />
-      </>
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        contentContainerStyle={styles.listContent}
+      />
     );
   };
 

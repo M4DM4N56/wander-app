@@ -13,7 +13,7 @@ export async function fetchNearbyPlaces(
     radius: String(radius),
   };
 
-  if (types.length === 0) {
+  if (!types || types.length === 0) {
     return apiGet<Place[]>('/api/places', baseParams);
   }
 
@@ -34,6 +34,7 @@ export async function fetchNearbyPlaces(
 
   const seen = new Set<string>();
   return results.flat().filter((place) => {
+    if (!place || !place.placeId) return false;
     if (seen.has(place.placeId)) return false;
     seen.add(place.placeId);
     return true;

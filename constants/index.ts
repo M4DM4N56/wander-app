@@ -10,7 +10,7 @@ export const TRAVEL_SPEED_MPM: Record<string, number> = {
 
 export const MIN_VENUE_TIME_MINUTES = 5;
 
-export const MAX_RECOMMENDATIONS = 100;
+export const MAX_RECOMMENDATIONS = 30;
 
 export const SCORE_WEIGHTS = {
   timeAtVenue: 0.5,

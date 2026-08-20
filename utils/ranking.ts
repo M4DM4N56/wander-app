@@ -1,8 +1,5 @@
 import { Place, DistanceResult, Recommendation } from '../types';
-import { MIN_VENUE_TIME_MINUTES, MAX_RECOMMENDATIONS, SCORE_WEIGHTS, PLACE_TYPE_LABELS } from '../constants';
-
-const placeTypeLabels = PLACE_TYPE_LABELS;
-const wantedTypes = new Set(Object.keys(placeTypeLabels));
+import { MIN_VENUE_TIME_MINUTES, MAX_RECOMMENDATIONS, SCORE_WEIGHTS } from '../constants';
 
 export function rankPlaces(
   candidates: Place[],
@@ -16,8 +13,7 @@ export function rankPlaces(
   const recommendations: Recommendation[] = [];
 
   for (const candidate of candidates) {
-    if (!candidate.openNow) continue;
-    if (!candidate.types.some((t) => wantedTypes.has(t))) continue;
+    if (candidate.openNow === false) continue;
 
     const durationSeconds = durationMap.get(candidate.placeId);
     if (durationSeconds == null) continue;
