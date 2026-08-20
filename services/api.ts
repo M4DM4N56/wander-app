@@ -19,7 +19,7 @@ async function fetchWithTimeout<T>(url: string, options: RequestInit = {}): Prom
     return response.json() as Promise<T>;
   } catch (err: any) {
     clearTimeout(timeoutId);
-    if (err.name === 'AbortError') {
+    if (err instanceof Error && err.name === 'AbortError') {
       throw new Error('Request timed out. Please try again.');
     }
     throw err;

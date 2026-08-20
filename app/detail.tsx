@@ -69,10 +69,10 @@ export default function DetailScreen() {
 
         <Text style={styles.name}>{rec.name}</Text>
 
-        {rec.photoReferences.length > 0 && (
+        {(rec.photoReferences?.length ?? 0) > 0 && (
           <View style={styles.photoWrapper}>
             <Image
-              source={{ uri: getPhotoUrl(rec.photoReferences[0], 800) }}
+              source={{ uri: getPhotoUrl(rec.photoReferences?.[0], 800) }}
               style={styles.photo}
               resizeMode="cover"
             />
@@ -85,12 +85,12 @@ export default function DetailScreen() {
               {rec.totalRatings === 0 ? (
                 'No ratings yet'
               ) : (
-                <>★ {rec.rating.toFixed(1)}{' '}
+                <>★ {rec.rating?.toFixed(1) ?? '0'}{' '}
                   <Text style={styles.reviewCount}>({rec.totalRatings} reviews)</Text>
                 </>
               )}
             </Text>
-            {rec.types.some((t) => PRICED_PLACE_TYPES.has(t)) && getPriceLabel(rec.priceLevel) && (
+            {(rec.types?.some((t) => PRICED_PLACE_TYPES.has(t)) ?? false) && getPriceLabel(rec.priceLevel) && (
               <View style={styles.priceTag}>
                 <Text style={styles.priceTagText}>{getPriceLabel(rec.priceLevel)}</Text>
               </View>

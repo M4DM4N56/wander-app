@@ -58,7 +58,15 @@ export function useRecommendations() {
           console.warn('fetchTravelTimes failed, proceeding without distance data:', err);
         }
 
-        const ranked = rankPlaces(candidates, distanceResults, timeBudget);
+        let ranked: Recommendation[] = [];
+        try {
+          ranked = rankPlaces(candidates, distanceResults, timeBudget);
+        } catch (err) {
+          console.error('[useRecommendations] rankPlaces error:', err);
+          setError('Something went wrong processing results.');
+          setLoading(false);
+          return;
+        }
 
         setRecommendations(ranked);
         setCandidates(candidates);

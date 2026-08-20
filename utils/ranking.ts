@@ -1,7 +1,8 @@
 import { Place, DistanceResult, Recommendation } from '../types';
 import { MIN_VENUE_TIME_MINUTES, MAX_RECOMMENDATIONS, SCORE_WEIGHTS, PLACE_TYPE_LABELS } from '../constants';
 
-const wantedTypes = new Set(Object.keys(PLACE_TYPE_LABELS));
+const placeTypeLabels = PLACE_TYPE_LABELS;
+const wantedTypes = new Set(Object.keys(placeTypeLabels));
 
 export function rankPlaces(
   candidates: Place[],
