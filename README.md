@@ -5,6 +5,12 @@
 Wander is a mobile app for free afternoons and those moments between plans. Tell it how much time you have and how you're getting around, and it'll find nearby places you can visit given your time budget, factoring in travel time there and back.
 
 <p align="center">
+  <a href="https://github.com/M4DM4N56/wander-app/releases/latest/download/wander.apk">
+    <img src="https://img.shields.io/badge/Download-Android%20APK-4F46E5?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" />
+  </a>
+</p>
+
+<p align="center">
   <img src="assets/screenshots/home-page.jpg" width="22%" alt="Home screen" />
   <img src="assets/screenshots/cafe-recommendations.jpg" width="22%" alt="Cafe results" />
   <img src="assets/screenshots/library-detail-page.jpg" width="22%" alt="Place detail" />
